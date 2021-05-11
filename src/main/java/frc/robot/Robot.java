@@ -64,10 +64,10 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX m_transition = new WPI_VictorSPX(RobotMap.m_transition);
 
   private final WPI_VictorSPX climbMotor = new WPI_VictorSPX(RobotMap.m_climb);
-  private final WPI_VictorSPX winchMotor = new WPI_VictorSPX(RobotMap.m_winch);
+  private final WPI_TalonFX winchMotor = new WPI_TalonFX(RobotMap.m_winch);
 
-  double shooterSpeed1 = firstMotor.getSelectedSensorVelocity();
-  double shooterSpeed2 = secondMotor.getSelectedSensorVelocity();
+ // double shooterSpeed1 = firstMotor.getSelectedSensorVelocity();
+  //double shooterSpeed2 = secondMotor.getSelectedSensorVelocity();
 
   private final XboxController m_driverController = new XboxController(RobotMap.DRIVER_CONTROLLER);
   private final XboxController m_operatorController = new XboxController(RobotMap.OPERATOR_CONTROLLER);
@@ -293,7 +293,7 @@ public class Robot extends TimedRobot {
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+    //NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
   }
 
@@ -309,17 +309,17 @@ public class Robot extends TimedRobot {
       m_driverController.setRumble(RumbleType.kLeftRumble, 0.0);
       m_driverController.setRumble(RumbleType.kRightRumble, 0.0);
     }
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("getpipe").setNumber(0);
+    //NetworkTableInstance.getDefault().getTable("limelight").getEntry("getpipe").setNumber(0);
 
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+    //NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 /*
     SmartDashboard.putNumber("ShooterSpeed1", -firstMotor.getSelectedSensorVelocity());
     SmartDashboard.putNumber("ShooterSpeed2", -secondMotor.getSelectedSensorVelocity());
 */
   //*****DRIVETRAIN CODE******* */
 
-    double left_command;
-    double right_command;
+    //double left_command;
+    //double right_command;
 
 
       double triggerVal =
@@ -331,10 +331,10 @@ public class Robot extends TimedRobot {
        (m_driverController.getX(Hand.kLeft))
        * RobotMap.TURNING_RATE;
 
-      left_command = (triggerVal + stick) * RobotMap.DRIVING_SPEED;
-      right_command = (triggerVal - stick) * RobotMap.DRIVING_SPEED; 
+      //left_command = (triggerVal + stick) * RobotMap.DRIVING_SPEED;
+      //right_command = (triggerVal - stick) * RobotMap.DRIVING_SPEED; 
 
-      m_driveTrain.tankDrive(left_command, right_command);
+     // m_driveTrain.tankDrive(left_command, right_command);
 
       m_driveTrain.tankDrive(triggerVal + stick, triggerVal - stick);
 
@@ -347,7 +347,7 @@ public class Robot extends TimedRobot {
     /****************SHOOT LOW************ */
     } else if(m_driverController.getAButton()){
       m_shooter.arcadeDrive(-(RobotMap.LOW_SPEED), 0.0, false);
-      intakeMotor.set(-RobotMap.ROLLER_SPEED);
+      intakeMotor.set(RobotMap.ROLLER_SPEED);
     //****************DRIVER B************* */
     /****************SHOOT CLOSE************ */
     } else if(m_driverController.getBButton()){
@@ -366,7 +366,7 @@ public class Robot extends TimedRobot {
     }
     //************DRIVER AND OPERATOR STICK************* */
     /****************TRANSITION************ */
-    m_transition.set(m_driverController.getY(Hand.kRight)-0.05);
+   // m_transition.set(m_driverController.getY(Hand.kRight)-0.05);
     m_transition.set(m_operatorController.getY(Hand.kRight)-0.05);
 
 
@@ -385,14 +385,14 @@ public class Robot extends TimedRobot {
 
 
     //Limelight 
-    double kP = -0.07; //-0.1328
-    double min_command = 0.035; //0.001
-    double steering_adjust = 0.0;
+   // double kP = -0.07; //-0.1328
+   // double min_command = 0.035; //0.001
+   // double steering_adjust = 0.0;
 
-    double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0); 
+   // double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0); 
     //double tv = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tv").getDouble(0); 
 
-
+/*
     if(m_driverController.getBumper(Hand.kRight)){ 
       NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
@@ -409,6 +409,7 @@ public class Robot extends TimedRobot {
     } else{
 
     }
+  
 
     if(m_driverController.getBumperPressed(Hand.kLeft)){
       m_driveTrain.setMaxOutput(0.6);
@@ -416,7 +417,7 @@ public class Robot extends TimedRobot {
     if(m_driverController.getBumperReleased(Hand.kLeft)){
       m_driveTrain.setMaxOutput(1.0);
     }
-
+*/
     //*****************OPERATOR TRIGGERS*************** */
     /*******************TURN SPINNER******************* */
     spinnerMotor.set(
