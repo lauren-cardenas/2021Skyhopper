@@ -34,6 +34,10 @@ public class Robot extends TimedRobot {
   private static final String kLowAuto = "Low Auto";
   private static final String kHighAuto = "High Auto";
   private static final String kHighAutoPickup= "High Auto Pickup";
+  private static final String kCenterHighAuto = "TCup Center High Auto";
+  private static final String kCenterLowAuto = "TCup Center Low Auto";
+  private static final String kLeftHighAuto = "TCup Left High Auto";
+  private static final String kRightHighAuto = "TCup Right High Auto"; 
 
   private String m_autoSelected;
   
@@ -91,6 +95,10 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Low Auto", kLowAuto);
     m_chooser.addOption("High Auto", kHighAuto);
     m_chooser.addOption("High Auto Pickup", kHighAutoPickup);
+    m_chooser.addOption("TCup Center High Auto", kCenterHighAuto);
+    m_chooser.addOption("TCup Center Low Auto", kCenterLowAuto);
+    m_chooser.addOption("TCup Left High Auto", kLeftHighAuto);
+    m_chooser.addOption("TCup Right High Auto", kRightHighAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
 
@@ -279,7 +287,36 @@ public class Robot extends TimedRobot {
                 m_shooter.arcadeDrive(0, 0, false);
               }
             break;
-            case kDefaultAuto:
+       /*****************************************************************/
+      //Shoot from the center towards the high goal and then move forward
+      /*****************************************************************/
+            case kCenterHighAuto:
+          
+            if(m_timer.get() < 4){
+              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+            } else if (m_timer.get() <5 && m_timer.get() > 4){
+              m_shooter.arcadeDrive(0,0,false);
+            } else if (m_timer.get() < 8 && m_timer.get() > 5){
+              m_driveTrain.arcadeDrive(.5,0);
+            } else if (m_timer.get() < 9 && m_timer.get() > 8){
+              m_driveTrain.arcadeDrive(0, 0);
+            }
+            break;
+      /******************************************************************/
+      //Shoot from the center towards the high goal and then move forward
+      /******************************************************************/
+            case kCenterLowAuto:
+            if(m_timer.get() < 4){
+              m_driveTrain.arcadeDrive(.5, 0);
+            } else if (m_timer.get() <5 && m_timer.get() > 4){
+              m_driveTrain.arcadeDrive(0,0);
+            } else if (m_timer.get() < 8 && m_timer.get() > 5){
+              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+            } else if (m_timer.get() < 9 && m_timer.get() > 8){
+              m_shooter.arcadeDrive(0,0,false);
+            }
+            break;
+
             default:
               if(m_timer.get() < 3.0){
                 m_driveTrain.arcadeDrive(0.5, 0);
@@ -287,7 +324,7 @@ public class Robot extends TimedRobot {
                 m_driveTrain.stopMotor();
               }
               break;
-          }
+
   }
 
   /** This function is called once when teleop is enabled. */
