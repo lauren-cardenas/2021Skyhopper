@@ -36,8 +36,8 @@ public class Robot extends TimedRobot {
   private static final String kHighAutoPickup= "High Auto Pickup";
   private static final String kCenterHighAuto = "TCup Center High Auto";
   private static final String kCenterLowAuto = "TCup Center Low Auto";
-  private static final String kLeftHighAuto = "TCup Left High Auto";
-  private static final String kRightHighAuto = "TCup Right High Auto"; 
+  private static final String kLRHighAuto = "TCup L/R High Auto"; 
+  private static final String kCenterHighW5Auto = "TCup Center High W5 Auto";
 
   private String m_autoSelected;
   
@@ -96,9 +96,9 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("High Auto", kHighAuto);
     m_chooser.addOption("High Auto Pickup", kHighAutoPickup);
     m_chooser.addOption("TCup Center High Auto", kCenterHighAuto);
+    m_chooser.addOption("TCup Center High W5 Auto", kCenterHighW5Auto);
     m_chooser.addOption("TCup Center Low Auto", kCenterLowAuto);
-    m_chooser.addOption("TCup Left High Auto", kLeftHighAuto);
-    m_chooser.addOption("TCup Right High Auto", kRightHighAuto);
+    m_chooser.addOption("TCup L/R High Auto", kLRHighAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
 
@@ -294,8 +294,10 @@ public class Robot extends TimedRobot {
           
             if(m_timer.get() < 4){
               m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+              m_transition.set(-RobotMap.TRANSITION_SPEED);
             } else if (m_timer.get() <5 && m_timer.get() > 4){
               m_shooter.arcadeDrive(0,0,false);
+              m_transition.set(0);
             } else if (m_timer.get() < 8 && m_timer.get() > 5){
               m_driveTrain.arcadeDrive(.5,0);
             } else if (m_timer.get() < 9 && m_timer.get() > 8){
@@ -303,20 +305,66 @@ public class Robot extends TimedRobot {
             }
             break;
       /******************************************************************/
-      //Shoot from the center towards the high goal and then move forward
+      //Shoot from the center towards the low goal and then move forward
       /******************************************************************/
             case kCenterLowAuto:
-            if(m_timer.get() < 4){
-              m_driveTrain.arcadeDrive(.5, 0);
+            if(m_timer.get() < 4.0){
+              if(leftEncoders.getDistance() < 1000){
+                m_driveTrain.arcadeDrive(0.51, 0.1);
+                
+              } else{
+                m_driveTrain.stopMotor();}
+              } else if(m_timer.get() < 4.3 && m_timer.get() > 4.0){
+                armMotor.set(0.2);
+              } else if(m_timer.get() < 4.5 && m_timer.get() > 4.3){
+                armMotor.set(0.0);
+              } else if(m_timer.get() < 10.0 && m_timer.get() > 4.5){
+                intakeMotor.set(0.45);
+                m_shooter.arcadeDrive(-.1817, 0, false);
+                m_transition.set(-0.8);
+              } else{
+                intakeMotor.set(0.0);
+                m_shooter.arcadeDrive(0, 0, false);
+                m_transition.set(0);
+              }
+              break;
+      /******************************************************************/
+      //Shoot from the right towards the high goal and then move forward
+      /******************************************************************/  
+             case kLRHighAuto:
+             if(m_timer.get() < 4){
+              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED + .01,0,false);
+              m_transition.set(-RobotMap.TRANSITION_SPEED);
             } else if (m_timer.get() <5 && m_timer.get() > 4){
-              m_driveTrain.arcadeDrive(0,0);
-            } else if (m_timer.get() < 8 && m_timer.get() > 5){
-              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
-            } else if (m_timer.get() < 9 && m_timer.get() > 8){
               m_shooter.arcadeDrive(0,0,false);
+              m_transition.set(0);
+            } else if (m_timer.get() < 8 && m_timer.get() > 5){
+              m_driveTrain.arcadeDrive(.5,0);
+            } else if (m_timer.get() < 9 && m_timer.get() > 8){
+              m_driveTrain.arcadeDrive(0, 0);
             }
             break;
-
+      /******************************************************************/
+      //Shoot from the center towards the low goal and then move forward
+      /******************************************************************/
+      case kCenterHighW5Auto:
+          
+            
+            if(m_timer.get() < 7){
+              m_transition.set(0);
+            }
+            else if(m_timer.get() < 9 && m_timer.get()>7){
+              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+              m_transition.set(-RobotMap.TRANSITION_SPEED);
+            } else if (m_timer.get() <10 && m_timer.get() > 9){
+              m_shooter.arcadeDrive(0,0,false);
+              m_transition.set(0);
+            } else if (m_timer.get() < 13 && m_timer.get() > 10){
+              m_driveTrain.arcadeDrive(.5,0);
+            } else if (m_timer.get() < 14 && m_timer.get() > 13){
+              m_driveTrain.arcadeDrive(0, 0);
+            }
+            break;
             default:
               if(m_timer.get() < 3.0){
                 m_driveTrain.arcadeDrive(0.5, 0);
@@ -324,6 +372,7 @@ public class Robot extends TimedRobot {
                 m_driveTrain.stopMotor();
               }
               break;
+            }
 
   }
 
