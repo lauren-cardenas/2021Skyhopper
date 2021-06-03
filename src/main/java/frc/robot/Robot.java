@@ -102,8 +102,9 @@ public class Robot extends TimedRobot {
     SmartDashboard.putData("Auto choices", m_chooser);
 
 
-   // CameraServer.getInstance().startAutomaticCapture("Climb Cam", 0);
-    CameraServer.getInstance().startAutomaticCapture();
+   CameraServer.getInstance().startAutomaticCapture("Drive Cam", 0).setResolution(160, 120);
+   CameraServer.getInstance().startAutomaticCapture("Climb Cam", 1).setResolution(80, 40);
+
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
     leftEncoders.reset();
     rightEncoders.reset();
@@ -293,7 +294,7 @@ public class Robot extends TimedRobot {
             case kCenterHighAuto:
           
             if(m_timer.get() < 4){
-              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+              m_shooter.arcadeDrive(-.4,0,false);
               m_transition.set(-RobotMap.TRANSITION_SPEED);
             } else if (m_timer.get() <5 && m_timer.get() > 4){
               m_shooter.arcadeDrive(0,0,false);
@@ -310,7 +311,7 @@ public class Robot extends TimedRobot {
             case kCenterLowAuto:
             if(m_timer.get() < 4.0){
               if(leftEncoders.getDistance() < 1000){
-                m_driveTrain.arcadeDrive(0.51, 0.1);
+                m_driveTrain.arcadeDrive(0.51, 0.13); //old number is (0.51, 0.1)
                 
               } else{
                 m_driveTrain.stopMotor();}
@@ -344,27 +345,25 @@ public class Robot extends TimedRobot {
               m_driveTrain.arcadeDrive(0, 0);
             }
             break;
-      /******************************************************************/
-      //Shoot from the center towards the low goal and then move forward
-      /******************************************************************/
+      /***********************************************************************/
+      //Wait 5 Shoot from the center towards the High goal and then move forward
+      /************************************************************************/
       case kCenterHighW5Auto:
           
+      if(m_timer.get() < 9 && m_timer.get() >5 ){
+        m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+        m_transition.set(-RobotMap.TRANSITION_SPEED);
+      } else if (m_timer.get() <9 && m_timer.get() > 8){
+        m_shooter.arcadeDrive(0,0,false);
+        m_transition.set(0);
+      } else if (m_timer.get() < 12 && m_timer.get() > 9){
+        m_driveTrain.arcadeDrive(.5,0);
+      } else if (m_timer.get() < 13 && m_timer.get() > 12){
+        m_driveTrain.arcadeDrive(0, 0);
+      }
+      break;
             
-            if(m_timer.get() < 7){
-              m_transition.set(0);
-            }
-            else if(m_timer.get() < 9 && m_timer.get()>7){
-              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
-              m_transition.set(-RobotMap.TRANSITION_SPEED);
-            } else if (m_timer.get() <10 && m_timer.get() > 9){
-              m_shooter.arcadeDrive(0,0,false);
-              m_transition.set(0);
-            } else if (m_timer.get() < 13 && m_timer.get() > 10){
-              m_driveTrain.arcadeDrive(.5,0);
-            } else if (m_timer.get() < 14 && m_timer.get() > 13){
-              m_driveTrain.arcadeDrive(0, 0);
-            }
-            break;
+
             default:
               if(m_timer.get() < 3.0){
                 m_driveTrain.arcadeDrive(0.5, 0);
@@ -427,7 +426,7 @@ public class Robot extends TimedRobot {
     //****************DRIVER Y************* */
     /****************SHOOT FAR************ */
     if(m_driverController.getYButton()){
-      m_shooter.arcadeDrive(-0.455, 0.0, false);
+      m_shooter.arcadeDrive(-0.445, 0.0, false);
      // intakeMotor.set(RobotMap.ROLLER_SPEED/2);
     //****************DRIVER A************* */
     /****************SHOOT LOW************ */
@@ -526,7 +525,13 @@ public class Robot extends TimedRobot {
       climbMotor.set(0.0);
     }
 
-    if(m_driverController.getStartButton() & m_operatorController.getStartButton()){
+    if(m_operatorController.getStartButton()){
+      climbMotor.set(-RobotMap.CLIMB_SPEED);
+    } else{
+      climbMotor.set(0.0);
+    }
+
+    if(m_driverController.getStartButton()){
       winchMotor.set(RobotMap.WINCH_SPEED);
     } else{
       winchMotor.set(0.0);
