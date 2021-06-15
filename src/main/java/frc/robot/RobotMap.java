@@ -14,8 +14,8 @@ public class RobotMap {
     public static final double SHOOTER_SPEED = 0.45; //both lines
     public static final double WINCH_SPEED = 0.982;
     public static final double ROLLER_SPEED = 0.75;
-    public static final double TRANSITION_SPEED = 0.4;
-    public static final double ARM_SPEED = 0.5;
+    public static final double TRANSITION_SPEED = 0.8;
+    public static final double ARM_SPEED = 0.95;
     public static final double LOW_SPEED = 0.1817;
     public static final double DEPLOY_SPEED = 0.35;
     public static final double PANEL_SPEED = 1.0;
@@ -46,6 +46,8 @@ public class RobotMap {
     public static final int m_leftEnc2 = 1;
     public static final int m_rightEnc1 = 4;
     public static final int m_rightEnc2 = 5;
+    public static final int m_armSwitch = 2;
+    public static final int m_armSwitch2 = 8;
     public static final double wheelDiameter = 6;
     public static final double encoderCPR = 360;
 }

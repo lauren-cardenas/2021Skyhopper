@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -34,6 +37,10 @@ public class Robot extends TimedRobot {
   private static final String kLowAuto = "Low Auto";
   private static final String kHighAuto = "High Auto";
   private static final String kHighAutoPickup= "High Auto Pickup";
+  private static final String kCenterHighAuto = "TCup Center High Auto";
+  private static final String kCenterLowAuto = "TCup Center Low Auto";
+  private static final String kLRHighAuto = "TCup L/R High Auto"; 
+  private static final String kCenterHighW5Auto = "TCup Center High W5 Auto";
 
   private String m_autoSelected;
   
@@ -64,10 +71,10 @@ public class Robot extends TimedRobot {
   private final WPI_VictorSPX m_transition = new WPI_VictorSPX(RobotMap.m_transition);
 
   private final WPI_VictorSPX climbMotor = new WPI_VictorSPX(RobotMap.m_climb);
-  private final WPI_VictorSPX winchMotor = new WPI_VictorSPX(RobotMap.m_winch);
+  private final WPI_TalonFX winchMotor = new WPI_TalonFX(RobotMap.m_winch);
 
-  double shooterSpeed1 = firstMotor.getSelectedSensorVelocity();
-  double shooterSpeed2 = secondMotor.getSelectedSensorVelocity();
+ // double shooterSpeed1 = firstMotor.getSelectedSensorVelocity();
+  //double shooterSpeed2 = secondMotor.getSelectedSensorVelocity();
 
   private final XboxController m_driverController = new XboxController(RobotMap.DRIVER_CONTROLLER);
   private final XboxController m_operatorController = new XboxController(RobotMap.OPERATOR_CONTROLLER);
@@ -76,6 +83,9 @@ public class Robot extends TimedRobot {
 
   private final Encoder leftEncoders = new Encoder(0, 1, false);
   private final Encoder rightEncoders = new Encoder (6,7,true);
+
+  private final DigitalInput armSwitch = new DigitalInput(RobotMap.m_armSwitch);
+  private final DigitalInput armDownSwitch = new DigitalInput(RobotMap.m_armSwitch2);
 
   private final PowerDistributionPanel m_PDP = new PowerDistributionPanel();
 
@@ -91,11 +101,16 @@ public class Robot extends TimedRobot {
     m_chooser.addOption("Low Auto", kLowAuto);
     m_chooser.addOption("High Auto", kHighAuto);
     m_chooser.addOption("High Auto Pickup", kHighAutoPickup);
+    m_chooser.addOption("TCup Center High Auto", kCenterHighAuto);
+    m_chooser.addOption("TCup Center High W5 Auto", kCenterHighW5Auto);
+    m_chooser.addOption("TCup Center Low Auto", kCenterLowAuto);
+    m_chooser.addOption("TCup L/R High Auto", kLRHighAuto);
     SmartDashboard.putData("Auto choices", m_chooser);
 
 
-   // CameraServer.getInstance().startAutomaticCapture("Climb Cam", 0);
-    CameraServer.getInstance().startAutomaticCapture();
+   CameraServer.getInstance().startAutomaticCapture("Drive Cam", 0).setResolution(160, 120);
+   CameraServer.getInstance().startAutomaticCapture("Climb Cam", 1).setResolution(80, 40);
+
     NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
     leftEncoders.reset();
     rightEncoders.reset();
@@ -279,7 +294,82 @@ public class Robot extends TimedRobot {
                 m_shooter.arcadeDrive(0, 0, false);
               }
             break;
-            case kDefaultAuto:
+       /*****************************************************************/
+      //Shoot from the center towards the high goal and then move forward
+      /*****************************************************************/
+            case kCenterHighAuto:
+          
+            if(m_timer.get() < 4){
+              m_shooter.arcadeDrive(-.4,0,false);
+              m_transition.set(-RobotMap.TRANSITION_SPEED);
+            } else if (m_timer.get() <5 && m_timer.get() > 4){
+              m_shooter.arcadeDrive(0,0,false);
+              m_transition.set(0);
+            } else if (m_timer.get() < 8 && m_timer.get() > 5){
+              m_driveTrain.arcadeDrive(.5,0);
+            } else if (m_timer.get() < 9 && m_timer.get() > 8){
+              m_driveTrain.arcadeDrive(0, 0);
+            }
+            break;
+      /******************************************************************/
+      //Shoot from the center towards the low goal and then move forward
+      /******************************************************************/
+            case kCenterLowAuto:
+            if(m_timer.get() < 4.0){
+              if(leftEncoders.getDistance() < 1000){
+                m_driveTrain.arcadeDrive(0.51, 0.13); //old number is (0.51, 0.1)
+                
+              } else{
+                m_driveTrain.stopMotor();}
+              } else if(m_timer.get() < 4.3 && m_timer.get() > 4.0){
+                armMotor.set(0.2);
+              } else if(m_timer.get() < 4.5 && m_timer.get() > 4.3){
+                armMotor.set(0.0);
+              } else if(m_timer.get() < 10.0 && m_timer.get() > 4.5){
+                intakeMotor.set(0.45);
+                m_shooter.arcadeDrive(-.1817, 0, false);
+                m_transition.set(-0.8);
+              } else{
+                intakeMotor.set(0.0);
+                m_shooter.arcadeDrive(0, 0, false);
+                m_transition.set(0);
+              }
+              break;
+      /******************************************************************/
+      //Shoot from the right towards the high goal and then move forward
+      /******************************************************************/  
+             case kLRHighAuto:
+             if(m_timer.get() < 4){
+              m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED + .01,0,false);
+              m_transition.set(-RobotMap.TRANSITION_SPEED);
+            } else if (m_timer.get() <5 && m_timer.get() > 4){
+              m_shooter.arcadeDrive(0,0,false);
+              m_transition.set(0);
+            } else if (m_timer.get() < 8 && m_timer.get() > 5){
+              m_driveTrain.arcadeDrive(.5,0);
+            } else if (m_timer.get() < 9 && m_timer.get() > 8){
+              m_driveTrain.arcadeDrive(0, 0);
+            }
+            break;
+      /***********************************************************************/
+      //Wait 5 Shoot from the center towards the High goal and then move forward
+      /************************************************************************/
+      case kCenterHighW5Auto:
+          
+      if(m_timer.get() < 9 && m_timer.get() >5 ){
+        m_shooter.arcadeDrive(-RobotMap.SHOOTER_SPEED,0,false);
+        m_transition.set(-RobotMap.TRANSITION_SPEED);
+      } else if (m_timer.get() <9 && m_timer.get() > 8){
+        m_shooter.arcadeDrive(0,0,false);
+        m_transition.set(0);
+      } else if (m_timer.get() < 12 && m_timer.get() > 9){
+        m_driveTrain.arcadeDrive(.5,0);
+      } else if (m_timer.get() < 13 && m_timer.get() > 12){
+        m_driveTrain.arcadeDrive(0, 0);
+      }
+      break;
+            
+
             default:
               if(m_timer.get() < 3.0){
                 m_driveTrain.arcadeDrive(0.5, 0);
@@ -287,13 +377,14 @@ public class Robot extends TimedRobot {
                 m_driveTrain.stopMotor();
               }
               break;
-          }
+            }
+
   }
 
   /** This function is called once when teleop is enabled. */
   @Override
   public void teleopInit() {
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+    //NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
   }
 
@@ -309,17 +400,17 @@ public class Robot extends TimedRobot {
       m_driverController.setRumble(RumbleType.kLeftRumble, 0.0);
       m_driverController.setRumble(RumbleType.kRightRumble, 0.0);
     }
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("getpipe").setNumber(0);
+    //NetworkTableInstance.getDefault().getTable("limelight").getEntry("getpipe").setNumber(0);
 
-    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
+    //NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 /*
     SmartDashboard.putNumber("ShooterSpeed1", -firstMotor.getSelectedSensorVelocity());
     SmartDashboard.putNumber("ShooterSpeed2", -secondMotor.getSelectedSensorVelocity());
 */
   //*****DRIVETRAIN CODE******* */
 
-    double left_command;
-    double right_command;
+    //double left_command;
+    //double right_command;
 
 
       double triggerVal =
@@ -331,23 +422,23 @@ public class Robot extends TimedRobot {
        (m_driverController.getX(Hand.kLeft))
        * RobotMap.TURNING_RATE;
 
-      left_command = (triggerVal + stick) * RobotMap.DRIVING_SPEED;
-      right_command = (triggerVal - stick) * RobotMap.DRIVING_SPEED; 
+      //left_command = (triggerVal + stick) * RobotMap.DRIVING_SPEED;
+      //right_command = (triggerVal - stick) * RobotMap.DRIVING_SPEED; 
 
-      m_driveTrain.tankDrive(left_command, right_command);
+     // m_driveTrain.tankDrive(left_command, right_command);
 
       m_driveTrain.tankDrive(triggerVal + stick, triggerVal - stick);
 
     //****************DRIVER Y************* */
     /****************SHOOT FAR************ */
     if(m_driverController.getYButton()){
-      m_shooter.arcadeDrive(-0.455, 0.0, false);
+      m_shooter.arcadeDrive(-0.445, 0.0, false);
      // intakeMotor.set(RobotMap.ROLLER_SPEED/2);
     //****************DRIVER A************* */
     /****************SHOOT LOW************ */
     } else if(m_driverController.getAButton()){
       m_shooter.arcadeDrive(-(RobotMap.LOW_SPEED), 0.0, false);
-      intakeMotor.set(-RobotMap.ROLLER_SPEED);
+      intakeMotor.set(RobotMap.ROLLER_SPEED);
     //****************DRIVER B************* */
     /****************SHOOT CLOSE************ */
     } else if(m_driverController.getBButton()){
@@ -366,18 +457,18 @@ public class Robot extends TimedRobot {
     }
     //************DRIVER AND OPERATOR STICK************* */
     /****************TRANSITION************ */
-    m_transition.set(m_driverController.getY(Hand.kRight)-0.05);
+   // m_transition.set(m_driverController.getY(Hand.kRight)-0.05);
     m_transition.set(m_operatorController.getY(Hand.kRight)-0.05);
 
 
     //m_transition.set(m_driverController.getY(Hand.kRight)*.7);
     //**************OPERATOR Y*********************** */
     /****************ARM UP************************** */
-    if(m_operatorController.getYButton()){
+    if(m_operatorController.getYButton() && armSwitch.get()){
       armMotor.set(RobotMap.ARM_SPEED);
     //**************OPERATOR A*********************** */
     /****************ARM DOWN************************ */
-    } else if(m_operatorController.getAButton()){
+    } else if(m_operatorController.getAButton() && armDownSwitch.get()){
       armMotor.set(-RobotMap.ARM_SPEED);
     } else{
       armMotor.set(0.0);
@@ -385,14 +476,14 @@ public class Robot extends TimedRobot {
 
 
     //Limelight 
-    double kP = -0.07; //-0.1328
-    double min_command = 0.035; //0.001
-    double steering_adjust = 0.0;
+   // double kP = -0.07; //-0.1328
+   // double min_command = 0.035; //0.001
+   // double steering_adjust = 0.0;
 
-    double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0); 
+   // double tx = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0); 
     //double tv = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tv").getDouble(0); 
 
-
+/*
     if(m_driverController.getBumper(Hand.kRight)){ 
       NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").setNumber(3);
 
@@ -409,6 +500,7 @@ public class Robot extends TimedRobot {
     } else{
 
     }
+  
 
     if(m_driverController.getBumperPressed(Hand.kLeft)){
       m_driveTrain.setMaxOutput(0.6);
@@ -416,7 +508,7 @@ public class Robot extends TimedRobot {
     if(m_driverController.getBumperReleased(Hand.kLeft)){
       m_driveTrain.setMaxOutput(1.0);
     }
-
+*/
     //*****************OPERATOR TRIGGERS*************** */
     /*******************TURN SPINNER******************* */
     spinnerMotor.set(
@@ -439,7 +531,13 @@ public class Robot extends TimedRobot {
       climbMotor.set(0.0);
     }
 
-    if(m_driverController.getStartButton() & m_operatorController.getStartButton()){
+    if(m_operatorController.getStartButton()){
+      climbMotor.set(-RobotMap.CLIMB_SPEED);
+    } else{
+      climbMotor.set(0.0);
+    }
+
+    if(m_driverController.getStartButton()){
       winchMotor.set(RobotMap.WINCH_SPEED);
     } else{
       winchMotor.set(0.0);
