@@ -4,11 +4,14 @@
 
 package frc.robot;
 
+import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
@@ -80,6 +83,9 @@ public class Robot extends TimedRobot {
 
   private final Encoder leftEncoders = new Encoder(0, 1, false);
   private final Encoder rightEncoders = new Encoder (6,7,true);
+
+  private final DigitalInput armSwitch = new DigitalInput(RobotMap.m_armSwitch);
+  private final DigitalInput armDownSwitch = new DigitalInput(RobotMap.m_armSwitch2);
 
   private final PowerDistributionPanel m_PDP = new PowerDistributionPanel();
 
@@ -458,11 +464,11 @@ public class Robot extends TimedRobot {
     //m_transition.set(m_driverController.getY(Hand.kRight)*.7);
     //**************OPERATOR Y*********************** */
     /****************ARM UP************************** */
-    if(m_operatorController.getYButton()){
+    if(m_operatorController.getYButton() && armSwitch.get()){
       armMotor.set(RobotMap.ARM_SPEED);
     //**************OPERATOR A*********************** */
     /****************ARM DOWN************************ */
-    } else if(m_operatorController.getAButton()){
+    } else if(m_operatorController.getAButton() && armDownSwitch.get()){
       armMotor.set(-RobotMap.ARM_SPEED);
     } else{
       armMotor.set(0.0);
